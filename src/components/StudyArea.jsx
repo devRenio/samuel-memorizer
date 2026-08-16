@@ -98,6 +98,8 @@ export default function StudyArea({
                     ? getBlankDisplay(currentProblem.answers[0])
                     : null
                 }
+                currentAnswer={currentProblem.answers?.[0] ?? null}
+                isMobile={isMobile}
               />
             ) : isEmpty ? (
               <div className="empty-queue-cta">

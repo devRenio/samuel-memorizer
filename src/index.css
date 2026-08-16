@@ -825,6 +825,66 @@ input[type="checkbox"] {
   color: var(--text-primary);
 }
 
+.blank-hint-anchor {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.blank-hint-popup {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  z-index: 5;
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.72em;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  transition:
+    opacity 0.18s ease,
+    transform 0.22s ease,
+    visibility 0.18s ease;
+}
+
+.blank-hint-popup::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--card-bg);
+  filter: drop-shadow(0 1px 0 var(--border-color));
+}
+
+.blank-hint-popup.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.blank-hint-target {
+  cursor: help;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .blank-hint-target {
+    cursor: pointer;
+  }
+}
+
 .topic-display {
   font-family: "MaruBuriBold";
   font-size: 0.7em;
