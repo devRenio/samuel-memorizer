@@ -66,6 +66,7 @@ export function jbchBffPlugin() {
               allowOrigins,
               secure: false,
               profileStore,
+              presenceStore,
             });
 
         res.statusCode = response.status;

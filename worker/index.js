@@ -24,6 +24,7 @@ export default {
       return handleBffRequest(request, env, {
         allowOrigins: parseAllowOrigins(env.JBCH_CORS_ORIGINS),
         secure: true,
+        presenceNamespace: env.PRESENCE,
       });
     }
 

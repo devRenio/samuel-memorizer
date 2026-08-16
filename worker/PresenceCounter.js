@@ -1,8 +1,10 @@
 import {
   countActiveSessions,
   handlePresenceRequest,
+  jsonResponse,
   parseAllowOrigins,
   pruneSessions,
+  pruneUserActivity,
 } from "../server/presenceCore.js";
 
 export class PresenceCounter {
@@ -10,6 +12,7 @@ export class PresenceCounter {
     this.state = state;
     this.env = env;
     this.sessions = null;
+    this.userActivity = null;
   }
 
   async loadSessions() {
@@ -27,17 +30,54 @@ export class PresenceCounter {
     return this.sessions;
   }
 
+  async loadUserActivity() {
+    if (this.userActivity) return this.userActivity;
+
+    const stored = await this.state.storage.get("userActivity");
+    this.userActivity = new Map();
+    if (stored && typeof stored === "object") {
+      for (const [key, ts] of Object.entries(stored)) {
+        if (typeof ts === "number") {
+          this.userActivity.set(key, ts);
+        }
+      }
+    }
+    return this.userActivity;
+  }
+
   async saveSessions(sessions) {
     await this.state.storage.put("sessions", Object.fromEntries(sessions));
   }
 
+  async saveUserActivity(activity) {
+    await this.state.storage.put("userActivity", Object.fromEntries(activity));
+  }
+
   async fetch(request) {
+    const url = new URL(request.url);
+    const pathname = url.pathname.replace(/\/+$/, "") || "/";
+
+    if (pathname === "/user-activity" && request.method === "GET") {
+      const activity = await this.loadUserActivity();
+      pruneUserActivity(activity);
+      await this.saveUserActivity(activity);
+      return jsonResponse({ activity: Object.fromEntries(activity) });
+    }
+
     const store = {
-      heartbeat: async (visitorId) => {
+      heartbeat: async (visitorId, userid = "") => {
+        const now = Date.now();
         const sessions = await this.loadSessions();
-        sessions.set(visitorId, Date.now());
+        sessions.set(visitorId, now);
         pruneSessions(sessions);
         await this.saveSessions(sessions);
+
+        if (userid) {
+          const activity = await this.loadUserActivity();
+          activity.set(userid, now);
+          pruneUserActivity(activity);
+          await this.saveUserActivity(activity);
+        }
       },
       getCount: async () => {
         const sessions = await this.loadSessions();

@@ -1,12 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { isPresenceConfigured } from "../lib/presenceConfig";
 import { presenceFetchCount, presenceHeartbeat } from "../lib/presenceApi";
 
 const HEARTBEAT_MS = 150_000;
 
-export function usePresence() {
+export function usePresence({ userid = "" } = {}) {
   const [status, setStatus] = useState("disabled");
   const [count, setCount] = useState(0);
+  const useridRef = useRef("");
+
+  useEffect(() => {
+    useridRef.current = String(userid ?? "")
+      .trim()
+      .toLowerCase();
+  }, [userid]);
 
   const refreshCount = useCallback(async () => {
     if (!isPresenceConfigured()) return;
@@ -22,7 +29,7 @@ export function usePresence() {
   const ping = useCallback(async () => {
     if (!isPresenceConfigured()) return;
     try {
-      await presenceHeartbeat();
+      await presenceHeartbeat(useridRef.current);
       await refreshCount();
     } catch {
       setStatus("error");
@@ -40,7 +47,7 @@ export function usePresence() {
 
     async function start() {
       try {
-        await presenceHeartbeat();
+        await presenceHeartbeat(useridRef.current);
         if (cancelled) return;
         const next = await presenceFetchCount();
         if (cancelled) return;
@@ -60,7 +67,7 @@ export function usePresence() {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [ping]);
+  }, [ping, userid]);
 
   return { status, count, refreshCount };
 }

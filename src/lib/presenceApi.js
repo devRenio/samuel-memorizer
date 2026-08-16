@@ -57,10 +57,16 @@ async function presenceFetch(path, options = {}) {
   return parseResponse(res);
 }
 
-export async function presenceHeartbeat() {
+export async function presenceHeartbeat(userid = "") {
+  const payload = { visitorId: getPresenceVisitorId() };
+  const normalized = String(userid ?? "")
+    .trim()
+    .toLowerCase();
+  if (normalized) payload.userid = normalized;
+
   await presenceFetch("/heartbeat", {
     method: "POST",
-    body: JSON.stringify({ visitorId: getPresenceVisitorId() }),
+    body: JSON.stringify(payload),
   });
 }
 

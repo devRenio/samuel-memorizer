@@ -13,6 +13,7 @@ export const ADMIN_PROFILE_LABELS = {
   hand: "휴대전화",
   service: "선교회(섬김)",
   joinedAt: "가입일",
+  lastActiveAt: "최종 이용",
   createdAt: "최초 저장",
   updatedAt: "정보 갱신",
 };
@@ -30,6 +31,7 @@ const ADMIN_DETAIL_ORDER = [
   "hand",
   "service",
   "joinedAt",
+  "lastActiveAt",
   "createdAt",
   "updatedAt",
 ];
@@ -121,5 +123,17 @@ export function getMemberFieldDisplay(key, profile) {
   if (!profile) return "—";
   const value = profile[key];
   if (value == null || value === "") return "—";
+  if (key === "lastActiveAt" || key === "joinedAt" || key === "createdAt" || key === "updatedAt") {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }
   return value;
 }

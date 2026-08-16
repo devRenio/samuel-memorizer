@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { jbchFetchAdminMembers } from "../lib/jbchApi";
 import {
   ADMIN_MEMBER_SORT_OPTIONS,
+  formatLastActiveAt,
   sortAdminMembers,
 } from "../utils/adminMemberSort";
 import AdminMemberDetailModal from "./AdminMemberDetailModal";
@@ -35,6 +36,9 @@ function MemberListRow({ profile, onSelect }) {
           )}
         </span>
         <span className="admin-member-row-church">{church}</span>
+        <span className="admin-member-row-meta">
+          {formatLastActiveAt(profile.lastActiveAt)}
+        </span>
       </span>
       <span className="admin-member-row-chevron" aria-hidden="true">
         ›

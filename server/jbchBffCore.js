@@ -3,6 +3,7 @@ import {
   upsertMemberFromJbchResult,
 } from "./memberProfileStore.js";
 import { stripInternalCodes } from "../shared/memberProfileCore.js";
+import { readUserActivity } from "./presenceCore.js";
 
 const JBCH_API_BASE = "https://api.jbch.org";
 export const SESSION_COOKIE = "samuel_jbch_hash_v3";
@@ -304,13 +305,25 @@ export async function handleConsent(env, hash, profileStore) {
   return jsonResponse({ ok: true, needsConsent: false });
 }
 
-export async function handleAdminMembers(env, hash, profileStore) {
+export async function handleAdminMembers(env, hash, profileStore, options = {}) {
   const auth = await requireAdmin(env, hash);
   if (auth.error) return auth.error;
 
   const members = await profileStore.listAll();
-  const enriched = members.map((member) =>
-    stripInternalCodes({
+  const activity = await readUserActivity({
+    presenceNamespace: env.PRESENCE,
+    presenceStore: options.presenceStore,
+  }).catch(() => ({}));
+
+  const enriched = members.map((member) => {
+    const userid = String(member.userid ?? "")
+      .trim()
+      .toLowerCase();
+    const ts = activity[userid];
+    const lastActiveAt =
+      typeof ts === "number" ? new Date(ts).toISOString() : null;
+
+    return stripInternalCodes({
       ...member,
       joinedAt:
         member.joinedAt ||
@@ -318,8 +331,9 @@ export async function handleAdminMembers(env, hash, profileStore) {
         member.createdAt ||
         member.updatedAt ||
         null,
-    }),
-  );
+      lastActiveAt,
+    });
+  });
 
   return jsonResponse({ ok: true, members: enriched });
 }
@@ -430,7 +444,7 @@ export async function handleBffRequest(request, env, options = {}) {
       request.method === "GET"
     ) {
       const hash = readSessionHash(request.headers.get("Cookie"));
-      response = await handleAdminMembers(env, hash, profileStore);
+      response = await handleAdminMembers(env, hash, profileStore, options);
     } else if (pathname.endsWith("/consent") && request.method === "POST") {
       const hash = readSessionHash(request.headers.get("Cookie"));
       response = await handleConsent(env, hash, profileStore);

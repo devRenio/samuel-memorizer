@@ -1,5 +1,6 @@
 export const PRESENCE_WINDOW_MS = 210_000;
 export const PRUNE_AGE_MS = 480_000;
+export const USER_ACTIVITY_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
 
 export function validateVisitorId(id) {
   return (
@@ -8,6 +9,24 @@ export function validateVisitorId(id) {
     id.length <= 64 &&
     /^[a-zA-Z0-9_-]+$/.test(id)
   );
+}
+
+export function validateUserid(userid) {
+  const normalized = String(userid ?? "")
+    .trim()
+    .toLowerCase();
+  return (
+    normalized.length >= 2 &&
+    normalized.length <= 40 &&
+    /^[a-z0-9_]+$/.test(normalized)
+  );
+}
+
+export function normalizeUserid(userid) {
+  const normalized = String(userid ?? "")
+    .trim()
+    .toLowerCase();
+  return validateUserid(normalized) ? normalized : "";
 }
 
 export function pruneSessions(sessions, now = Date.now()) {
@@ -26,6 +45,32 @@ export function countActiveSessions(sessions, now = Date.now()) {
     }
   }
   return count;
+}
+
+export function pruneUserActivity(activity, now = Date.now()) {
+  for (const [key, ts] of activity) {
+    if (typeof ts !== "number" || now - ts > USER_ACTIVITY_MAX_AGE_MS) {
+      activity.delete(key);
+    }
+  }
+}
+
+export async function readUserActivity(options = {}) {
+  if (options.presenceStore?.getUserActivity) {
+    return options.presenceStore.getUserActivity();
+  }
+
+  const namespace = options.presenceNamespace;
+  if (!namespace) return {};
+
+  const id = namespace.idFromName("global");
+  const stub = namespace.get(id);
+  const res = await stub.fetch("https://presence/user-activity");
+  if (!res.ok) return {};
+
+  const data = await res.json().catch(() => null);
+  if (!data?.activity || typeof data.activity !== "object") return {};
+  return data.activity;
 }
 
 export function parseAllowOrigins(value) {
@@ -82,7 +127,8 @@ export async function handlePresenceRequest(request, store, options = {}) {
       if (!validateVisitorId(visitorId)) {
         response = jsonResponse({ error: "유효하지 않은 visitorId입니다." }, 400);
       } else {
-        await store.heartbeat(visitorId);
+        const userid = normalizeUserid(body?.userid);
+        await store.heartbeat(visitorId, userid);
         response = jsonResponse({ ok: true });
       }
     } else if (pathname.endsWith("/count") && request.method === "GET") {

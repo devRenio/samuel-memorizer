@@ -2303,6 +2303,12 @@ input[type="checkbox"] {
   word-break: break-word;
 }
 
+.admin-member-row-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
 .admin-member-row-chevron {
   flex-shrink: 0;
   font-size: 18px;

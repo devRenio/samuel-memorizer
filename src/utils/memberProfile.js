@@ -19,6 +19,7 @@ export function mapJbchMemberProfile(result) {
 
 export const ADMIN_MEMBER_DETAIL_FIELDS = [
   { key: "userid", label: "깨사모 아이디" },
+  { key: "lastActiveAt", label: "최종 이용" },
   { key: "email", label: "이메일" },
   { key: "birth", label: "생년월일" },
   { key: "reborn", label: "거듭남 일자" },

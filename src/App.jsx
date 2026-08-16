@@ -16,7 +16,7 @@ import { isAdminUser } from "./constants/admin";
 
 function App() {
   const auth = useAuth();
-  const presence = usePresence();
+  const presence = usePresence({ userid: auth.user?.userid });
   const app = useSamuelApp({ onboardingBlocked: auth.onboardingBlocked });
 
   const handleLogout = async () => {
