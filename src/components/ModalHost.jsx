@@ -42,14 +42,19 @@ export default function ModalHost({
   scriptureVersionId,
   onSelectScriptureVersion,
   noticeUrl,
+  presenceStatus,
+  onlineCount,
+  onRefreshOnlineCount,
 }) {
   const [versionListOpen, setVersionListOpen] = useState(false);
 
   useEffect(() => {
     if (activeModal !== "info") {
       setVersionListOpen(false);
+      return;
     }
-  }, [activeModal]);
+    onRefreshOnlineCount?.();
+  }, [activeModal, onRefreshOnlineCount]);
 
   const activeScriptureVersion =
     scriptureVersions.find((version) => version.id === scriptureVersionId) ??
@@ -187,6 +192,15 @@ export default function ModalHost({
               <p className="info-about-school">{APP_SCHOOL_SINCE_LABEL}</p>
               <p className="info-about-verse">{APP_VERSE_LINE}</p>
               <p className="info-about-ref">{APP_VERSE_REF}</p>
+              {presenceStatus !== "disabled" && (
+                <p className="info-online-count">
+                  {presenceStatus === "ready"
+                    ? `현재 접속 : ${onlineCount.toLocaleString()}명`
+                    : presenceStatus === "error"
+                      ? "현재 접속 : —"
+                      : "현재 접속 : …"}
+                </p>
+              )}
             </div>
 
             {scriptureVersions.length > 0 && (

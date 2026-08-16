@@ -11,10 +11,12 @@ import StatusBar from "./components/StatusBar";
 import ModalHost, { DEFAULT_FONT } from "./components/ModalHost";
 import { useSamuelApp } from "./hooks/useSamuelApp";
 import { useAuth } from "./hooks/useAuth";
+import { usePresence } from "./hooks/usePresence";
 import { isAdminUser } from "./constants/admin";
 
 function App() {
   const auth = useAuth();
+  const presence = usePresence();
   const app = useSamuelApp({ onboardingBlocked: auth.onboardingBlocked });
 
   const handleLogout = async () => {
@@ -219,6 +221,9 @@ function App() {
         scriptureVersionId={app.scriptureVersionId}
         onSelectScriptureVersion={app.selectScriptureVersion}
         noticeUrl={app.noticeUrl}
+        presenceStatus={presence.status}
+        onlineCount={presence.count}
+        onRefreshOnlineCount={presence.refreshCount}
       />
 
       {app.activeModal === "account" && (

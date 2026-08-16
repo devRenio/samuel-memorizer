@@ -2,8 +2,11 @@ import { loadEnv } from "vite";
 import { Buffer } from "node:buffer";
 import { handleBffRequest } from "./server/jbchBffCore.js";
 import { createDevProfileStore } from "./server/memberProfileStoreFile.js";
+import { handlePresenceRequest } from "./server/presenceCore.js";
+import { createDevPresenceStore } from "./server/presenceDevStore.js";
 
 const BFF_PREFIX = "/api/jbch";
+const PRESENCE_PREFIX = "/api/presence";
 
 function buildAllowOrigins(env) {
   const raw = env.JBCH_CORS_ORIGINS ?? "";
@@ -22,9 +25,13 @@ export function jbchBffPlugin() {
       const env = loadEnv(server.config.mode, server.config.envDir, "");
       const allowOrigins = buildAllowOrigins(env);
       const profileStore = createDevProfileStore(env);
+      const presenceStore = createDevPresenceStore();
 
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith(BFF_PREFIX)) {
+        if (
+          !req.url?.startsWith(BFF_PREFIX) &&
+          !req.url?.startsWith(PRESENCE_PREFIX)
+        ) {
           next();
           return;
         }
@@ -51,11 +58,15 @@ export function jbchBffPlugin() {
         }
 
         const request = new Request(url, init);
-        const response = await handleBffRequest(request, env, {
-          allowOrigins,
-          secure: false,
-          profileStore,
-        });
+        const response = req.url.startsWith(PRESENCE_PREFIX)
+          ? await handlePresenceRequest(request, presenceStore, {
+              allowOrigins,
+            })
+          : await handleBffRequest(request, env, {
+              allowOrigins,
+              secure: false,
+              profileStore,
+            });
 
         res.statusCode = response.status;
         response.headers.forEach((value, key) => {

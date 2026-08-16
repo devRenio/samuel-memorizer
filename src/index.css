@@ -2429,6 +2429,19 @@ input[type="checkbox"] {
   color: var(--text-secondary);
 }
 
+.info-online-count {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.info-online-count strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
 .info-version-picker {
   margin: 0 0 16px;
   text-align: left;
