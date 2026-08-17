@@ -255,7 +255,8 @@ button:hover {
   justify-content: center; /* 텍스트 중앙 정렬 */
 }
 
-.menu-trigger:hover {
+.menu-trigger:hover,
+.menu-group.is-open .menu-trigger {
   background-color: var(--hover-bg);
 }
 
@@ -272,6 +273,10 @@ button:hover {
   flex-direction: column;
   padding: 8px;
   z-index: 200;
+}
+
+.menu-group.is-open .dropdown-content {
+  display: flex;
 }
 
 .dropdown-content button {

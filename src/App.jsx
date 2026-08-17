@@ -109,7 +109,6 @@ function App() {
       <div className="app-chrome">
         <Navbar
           navRef={app.navRef}
-          isMobile={app.isMobile}
           activeMenu={app.activeMenu}
           toggleMenu={app.toggleMenu}
           dayProgressLabels={app.dayProgressLabels}

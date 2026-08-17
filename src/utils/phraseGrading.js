@@ -1,26 +1,26 @@
 import { normToken } from "./memorizeLogic";
 
-/** 입력을 공백·장절 기호(- , /)로 쪼개 정규화된 토큰 배열로 */
-function tokenizeInput(userInput) {
-  return userInput
+const PUNCT_RE = /[,\-/]/g;
+
+/** 병합 입력: 공백·장절 기호 제거 후 연속 비교 */
+function normalizePhraseInput(userInput) {
+  return String(userInput ?? "")
     .trim()
-    .split(/[\s\-,/]+/)
-    .map(normToken)
-    .filter(Boolean);
+    .replace(/\s+/g, "")
+    .replace(PUNCT_RE, "");
 }
 
 /**
  * 연속 구절 입력 부분 채점 — 앞에서부터 순서대로 단어 매칭.
- * 붙여쓰기(얻는+줄=얻는줄)는 인정하지 않음: 띄어쓰기가 다르면 오답.
+ * 띄어쓰기는 무시하며, 붙여쓰기(얻는+줄=얻는줄)도 인정합니다.
  * 장절 범위는 "38 39"/"38-39" 모두 같은 토큰으로 정규화되어 정답 처리.
- * 동일 단어가 여러 번 있어도 항상 앞쪽 빈칸부터 채움(LCS 역추적 시 뒤쪽이 먼저 맞는 버그 방지).
  */
 export function gradePhrase(expectedTokens, userInput) {
-  const userWords = tokenizeInput(userInput);
   const exp = expectedTokens.map(normToken);
   const n = exp.length;
+  const userNorm = normalizePhraseInput(userInput);
 
-  if (userWords.length === 0) {
+  if (!userNorm) {
     return {
       allCorrect: false,
       anyCorrect: false,
@@ -29,14 +29,13 @@ export function gradePhrase(expectedTokens, userInput) {
     };
   }
 
+  let pos = 0;
   const matched = new Array(n).fill(false);
-  let expIdx = 0;
 
-  for (const userWord of userWords) {
-    if (expIdx >= n) break;
-    if (userWord === exp[expIdx]) {
-      matched[expIdx] = true;
-      expIdx += 1;
+  for (let i = 0; i < n; i++) {
+    if (userNorm.startsWith(exp[i], pos)) {
+      matched[i] = true;
+      pos += exp[i].length;
     }
   }
 
@@ -54,8 +53,10 @@ export function gradePhrase(expectedTokens, userInput) {
     }
   }
 
+  const allCorrect = matchedCount === n && pos === userNorm.length;
+
   return {
-    allCorrect: matchedCount === n,
+    allCorrect,
     anyCorrect: matchedCount > 0,
     segments,
     unmatchedTokens,

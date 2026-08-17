@@ -1,6 +1,5 @@
 export default function Navbar({
   navRef,
-  isMobile,
   activeMenu,
   toggleMenu,
   dayProgressLabels,
@@ -15,16 +14,18 @@ export default function Navbar({
   onToggleFullscreen,
   theme,
 }) {
+  const courseOpen = activeMenu === "course";
+  const dayOpen = activeMenu === "day";
+
   return (
     <nav className="navbar" ref={navRef}>
       <div className="menu-groups" data-tour="course-day">
-        <div
-          className="menu-group"
-          onMouseEnter={() => !isMobile && toggleMenu("course")}
-          onMouseLeave={() => !isMobile && toggleMenu(null)}
-        >
+        <div className={`menu-group${courseOpen ? " is-open" : ""}`}>
           <button
+            type="button"
             className="menu-trigger"
+            aria-haspopup="listbox"
+            aria-expanded={courseOpen}
             onClick={(e) => {
               e.stopPropagation();
               toggleMenu("course");
@@ -32,13 +33,12 @@ export default function Navbar({
           >
             과정 ▾
           </button>
-          <div
-            className="dropdown-content"
-            style={{ display: activeMenu === "course" ? "flex" : "none" }}
-          >
+          <div className="dropdown-content" role="listbox">
             {[1, 2, 3, 4].map((n) => (
               <button
                 key={n}
+                type="button"
+                role="option"
                 onClick={() => {
                   onSelectCourse(n);
                   toggleMenu(null);
@@ -50,13 +50,12 @@ export default function Navbar({
           </div>
         </div>
 
-        <div
-          className="menu-group"
-          onMouseEnter={() => !isMobile && toggleMenu("day")}
-          onMouseLeave={() => !isMobile && toggleMenu(null)}
-        >
+        <div className={`menu-group${dayOpen ? " is-open" : ""}`}>
           <button
+            type="button"
             className="menu-trigger"
+            aria-haspopup="listbox"
+            aria-expanded={dayOpen}
             onClick={(e) => {
               e.stopPropagation();
               toggleMenu("day");
@@ -64,13 +63,12 @@ export default function Navbar({
           >
             일차 ▾
           </button>
-          <div
-            className="dropdown-content"
-            style={{ display: activeMenu === "day" ? "flex" : "none" }}
-          >
+          <div className="dropdown-content" role="listbox">
             {dayProgressLabels.map((label, i) => (
               <button
                 key={i}
+                type="button"
+                role="option"
                 onClick={() => {
                   onSelectDay(i + 1);
                   toggleMenu(null);
@@ -80,6 +78,8 @@ export default function Navbar({
               </button>
             ))}
             <button
+              type="button"
+              role="option"
               onClick={() => {
                 onSelectDay(7);
                 toggleMenu(null);
@@ -89,6 +89,7 @@ export default function Navbar({
             </button>
             <hr />
             <button
+              type="button"
               onClick={() => {
                 onRequestReset();
                 toggleMenu(null);
