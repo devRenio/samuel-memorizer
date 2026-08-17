@@ -10,6 +10,7 @@ export default function ModeBar({
   onMergeBlanksChange,
 }) {
   const modes = [
+    { id: 0, n: "연습 모드", subText: null, subAction: null },
     {
       id: 1,
       n: "빈칸 모드",
@@ -54,20 +55,22 @@ export default function ModeBar({
       </div>
 
       <div className="mode-bar-options">
-        <label
-          className={`merge-blank-toggle ${mergeBlanks ? "on" : ""}`}
-          data-tour="merge-blanks"
-          title="인접 빈칸을 하나로 병합해 한 번에 입력 (Enter로 제출)"
-        >
-          <input
-            type="checkbox"
-            className="merge-blank-input"
-            checked={mergeBlanks}
-            onChange={(e) => onMergeBlanksChange(e.target.checked)}
-          />
-          <span className="merge-blank-switch" aria-hidden="true" />
-          <span className="merge-blank-text">빈칸 병합</span>
-        </label>
+        {currentMode !== 0 && (
+          <label
+            className={`merge-blank-toggle ${mergeBlanks ? "on" : ""}`}
+            data-tour="merge-blanks"
+            title="인접 빈칸을 하나로 병합해 한 번에 입력 (Enter로 제출)"
+          >
+            <input
+              type="checkbox"
+              className="merge-blank-input"
+              checked={mergeBlanks}
+              onChange={(e) => onMergeBlanksChange(e.target.checked)}
+            />
+            <span className="merge-blank-switch" aria-hidden="true" />
+            <span className="merge-blank-text">빈칸 병합</span>
+          </label>
+        )}
 
         <button className="mode-main-btn mode-help-btn" onClick={onOpenHelp}>
           도움말

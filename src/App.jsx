@@ -133,10 +133,7 @@ function App() {
           blankNum={app.blankNum}
           wholeLevelNum={app.wholeLevelNum}
           mergeBlanks={app.mergeBlanks}
-          onModeSelect={(id) => {
-            app.setCurrentMode(id);
-            app.displayProblem(id);
-          }}
+          onModeSelect={app.handleModeSelect}
           onOpenBlankModal={() => app.setActiveModal("blank")}
           onOpenWholeModal={() => app.setActiveModal("whole")}
           onOpenHelp={() => app.setActiveModal("help")}
@@ -165,6 +162,7 @@ function App() {
         onSkip={() => app.displayProblem(app.currentMode)}
         onDismissKeyboard={app.keyboard.dismissKeyboard}
         onInputChange={app.handleInputChange}
+        onPracticeInput={app.handlePracticeInput}
         onKeyDown={app.handleKeyDown}
         onBeforeInput={app.handleBeforeInput}
         onSubmit={() => app.submitAnswer()}
@@ -215,6 +213,7 @@ function App() {
         onStartTutorial={app.startTutorial}
         onBlankLevel={app.handleBlankLevel}
         onWholeLevel={app.handleWholeLevel}
+        onDismissPracticeIntroPermanent={app.dismissPracticeIntroPermanent}
         onOpenPrivacy={() => app.setActiveModal("privacy")}
         onOpenContact={handleOpenContact}
         scriptureVersions={app.scriptureVersions}

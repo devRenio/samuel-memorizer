@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generateProblem, normToken } from "../utils/memorizeLogic";
 import {
+  clampPracticeInput,
+  isPracticeComplete,
+  stripPracticeParens,
+} from "../utils/practiceTyping";
+import {
   DEFAULT_FONT,
   cssFontFamily,
   isBundledFont,
@@ -8,6 +13,11 @@ import {
   resolveInitialFont,
 } from "../utils/fonts";
 import { TUTORIAL_STORAGE_KEY, getStepsForDevice } from "../data/tutorialSteps";
+import {
+  dismissPracticeIntroPermanently,
+  markPracticeIntroShownThisSession,
+  shouldShowPracticeIntro,
+} from "../utils/practiceIntro";
 import {
   getVersionById,
   resolveInitialVersionId,
@@ -32,6 +42,13 @@ import { useIsMobile } from "./useIsMobile";
 import { useKeyboardLayout } from "./useKeyboardLayout";
 
 const EMPTY_SELECTED = [[], [], [], [], [], []];
+const PRACTICE_MODE = 0;
+const DEFAULT_MODE = 1;
+
+function resolveInitialMode(savedData) {
+  if (savedData.currentMode == null) return DEFAULT_MODE;
+  return savedData.currentMode;
+}
 
 export function useSamuelApp({ onboardingBlocked = false } = {}) {
   const savedData = useMemo(() => loadStoredData(), []);
@@ -72,7 +89,9 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
   const [attempts, setAttempts] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const [currentMode, setCurrentMode] = useState(savedData.currentMode || 1);
+  const [currentMode, setCurrentMode] = useState(() =>
+    resolveInitialMode(savedData),
+  );
   const [blankNum, setBlankNum] = useState(savedData.blankNum || 5);
   const [wholeLevelNum, setWholeLevelNum] = useState(
     savedData.wholeLevelNum || 2,
@@ -175,6 +194,20 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
 
   const buildProblemForVerse = useCallback(
     (selected, mode, bNum, wNum) => {
+      if (mode === 0) {
+        const practiceText = stripPracticeParens(
+          `${selected.reference} ${selected.verse}`,
+        );
+        return {
+          problemText: practiceText,
+          practiceText,
+          answers: [],
+          reference: selected.reference,
+          raw: selected,
+          topic: selected.topic,
+        };
+      }
+
       const actualBlankNum = mode === 5 ? 10 : bNum;
 
       const problem = generateProblem(selected, mode === 5 ? 1 : mode, {
@@ -254,6 +287,28 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     },
     [scripture, blankNum, wholeLevelNum, buildProblemForVerse],
   );
+
+  const handleModeSelect = useCallback(
+    (mode) => {
+      setCurrentMode(mode);
+      displayProblem(mode);
+
+      if (mode === PRACTICE_MODE && shouldShowPracticeIntro()) {
+        markPracticeIntroShownThisSession();
+        setActiveModal("practice-intro");
+      }
+    },
+    [displayProblem],
+  );
+
+  const dismissPracticeIntro = useCallback(() => {
+    setActiveModal(null);
+  }, []);
+
+  const dismissPracticeIntroPermanent = useCallback(() => {
+    dismissPracticeIntroPermanently();
+    setActiveModal(null);
+  }, []);
 
   const markVerseCompleted = useCallback((reference) => {
     setCompletedVerseRefs((prev) =>
@@ -434,6 +489,17 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
       if (!currentProblem) return;
 
       const input = inputOverride ?? userInput;
+
+      if (currentProblem.practiceText) {
+        if (isCompleted || isPracticeComplete(currentProblem.practiceText, input)) {
+          advanceToNextVerse(
+            currentProblem.reference,
+            currentProblem.indexInList,
+          );
+        }
+        return;
+      }
+
       const shouldAdvance =
         isCompleted || currentProblem.answers.length === 0;
 
@@ -620,6 +686,14 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     const isSpace =
       e.code === "Space" || e.key === " " || e.key === "Spacebar";
 
+    if (currentProblem?.practiceText) {
+      if (isEnter) {
+        e.preventDefault();
+        submitAnswer();
+      }
+      return;
+    }
+
     if (isEnter) {
       e.preventDefault();
       submitAnswer();
@@ -635,6 +709,8 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
 
   const handleBeforeInput = (e) => {
     if (e.nativeEvent.isComposing) return;
+
+    if (currentProblem?.practiceText) return;
 
     const isLineBreak = e.inputType === "insertLineBreak";
     const isSpaceInsert =
@@ -655,8 +731,23 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     }
   };
 
+  const handlePracticeInput = useCallback(
+    (nextValue) => {
+      if (!currentProblem?.practiceText) return;
+      const fullText = currentProblem.practiceText;
+      const clamped = clampPracticeInput(nextValue, fullText);
+      setUserInput(clamped);
+      setIsCompleted(isPracticeComplete(fullText, clamped));
+    },
+    [currentProblem],
+  );
+
   const handleInputChange = (e) => {
     const value = e.target.value;
+
+    if (currentProblem?.practiceText) {
+      return;
+    }
 
     if (mergeBlanksRef.current) {
       setUserInput(value);
@@ -664,6 +755,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     }
 
     if (
+      currentMode !== 0 &&
       isMobile &&
       !e.nativeEvent.isComposing &&
       value.endsWith(" ")
@@ -828,6 +920,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
   useEffect(() => {
     if (onboardingBlocked) return;
     if (localStorage.getItem(TUTORIAL_STORAGE_KEY) === "true") return;
+    setCurrentMode(DEFAULT_MODE);
     const timer = window.setTimeout(() => {
       setTutorialActive(true);
       setTutorialStep(0);
@@ -942,19 +1035,24 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
   useEffect(() => {
     if (!keyboard.typingMode || !problemContainerRef.current) return;
 
-    const scrollActiveBlankIntoView = () => {
-      const activeBlank = problemContainerRef.current?.querySelector(
-        ".active-blank, .text-error-flash",
+    const scrollActiveIntoView = () => {
+      const target = problemContainerRef.current?.querySelector(
+        ".active-blank, .text-error-flash, .practice-input",
       );
-      if (activeBlank) {
-        activeBlank.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (target) {
+        target.scrollIntoView({ block: "center", behavior: "smooth" });
       }
     };
 
-    scrollActiveBlankIntoView();
-    const timer = window.setTimeout(scrollActiveBlankIntoView, 320);
+    scrollActiveIntoView();
+    const timer = window.setTimeout(scrollActiveIntoView, 320);
     return () => window.clearTimeout(timer);
-  }, [keyboard.typingMode, keyboard.keyboardOpen, currentProblem?.problemText]);
+  }, [
+    keyboard.typingMode,
+    keyboard.keyboardOpen,
+    currentProblem?.problemText,
+    userInput,
+  ]);
 
   useEffect(() => {
     saveStoredData({
@@ -1054,6 +1152,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     toggleTheme,
     toggleFullscreen,
     displayProblem,
+    handleModeSelect,
     selectCourse,
     selectDay,
     requestDayReset,
@@ -1061,6 +1160,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     handleKeyDown,
     handleBeforeInput,
     handleInputChange,
+    handlePracticeInput,
     handleBlankLevel,
     handleWholeLevel,
     handleMergeBlanksChange,
@@ -1077,6 +1177,8 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     startTutorial,
     advanceTutorial,
     completeTutorial,
+    dismissPracticeIntro,
+    dismissPracticeIntroPermanent,
     getProgressSnapshot,
     applyProgressSnapshot,
   };

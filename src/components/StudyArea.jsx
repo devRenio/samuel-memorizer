@@ -1,4 +1,5 @@
 import ProblemRenderer from "./ProblemRenderer";
+import PracticeRenderer from "./PracticeRenderer";
 import { getBlankDisplay, isPhraseAnswer } from "../utils/problemText";
 
 export default function StudyArea({
@@ -22,6 +23,7 @@ export default function StudyArea({
   onSkip,
   onDismissKeyboard,
   onInputChange,
+  onPracticeInput,
   onKeyDown,
   onBeforeInput,
   onFocus,
@@ -34,8 +36,16 @@ export default function StudyArea({
   const isEnterKey = (e) =>
     e.key === "Enter" || e.code === "Enter" || e.keyCode === 13;
 
+  const isPracticeMode = currentMode === 0;
+  const practiceText = currentProblem?.practiceText ?? null;
+
   const handleInputKeyDown = (e) => {
     if (e.nativeEvent.isComposing) return;
+
+    if (isPracticeMode) {
+      onKeyDown(e);
+      return;
+    }
 
     if (mergeBlanks) {
       if (isSpaceKey(e)) return;
@@ -51,6 +61,11 @@ export default function StudyArea({
 
   const handleInputBeforeInput = (e) => {
     if (e.nativeEvent.isComposing) return;
+
+    if (isPracticeMode) {
+      onBeforeInput(e);
+      return;
+    }
 
     if (mergeBlanks) {
       if (e.inputType === "insertLineBreak") {
@@ -90,17 +105,30 @@ export default function StudyArea({
 
           <div className="problem-text-wrapper">
             {currentProblem ? (
-              <ProblemRenderer
-                text={currentProblem.problemText}
-                isError={isError}
-                activeBlankDisplay={
-                  isPhraseAnswer(currentProblem.answers?.[0])
-                    ? getBlankDisplay(currentProblem.answers[0])
-                    : null
-                }
-                currentAnswer={currentProblem.answers?.[0] ?? null}
-                isMobile={isMobile}
-              />
+              isPracticeMode && practiceText ? (
+                <PracticeRenderer
+                  targetText={practiceText}
+                  userInput={userInput}
+                  inputRef={inputRef}
+                  isCompleted={isCompleted}
+                  onPracticeInput={onPracticeInput}
+                  onKeyDown={handleInputKeyDown}
+                  onFocus={onFocus}
+                  onBlur={onBlur}
+                />
+              ) : (
+                <ProblemRenderer
+                  text={currentProblem.problemText}
+                  isError={isError}
+                  activeBlankDisplay={
+                    isPhraseAnswer(currentProblem.answers?.[0])
+                      ? getBlankDisplay(currentProblem.answers[0])
+                      : null
+                  }
+                  currentAnswer={currentProblem.answers?.[0] ?? null}
+                  isMobile={isMobile}
+                />
+              )
             ) : isEmpty ? (
               <div className="empty-queue-cta">
                 <p className="empty-queue-title">암송할 구절이 없습니다</p>
@@ -137,22 +165,30 @@ export default function StudyArea({
 
         <div className="input-area" data-tour="input-area">
           <input
-            ref={inputRef}
-            className={`answer-input ${isError ? "input-error" : ""}`}
+            ref={isPracticeMode ? undefined : inputRef}
+            className={`answer-input ${isError ? "input-error" : ""} ${isPracticeMode ? "answer-input--paused" : ""}`}
             type="text"
-            value={userInput}
-            onChange={onInputChange}
-            onKeyDown={handleInputKeyDown}
-            onBeforeInput={handleInputBeforeInput}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            autoFocus={!isMobile}
+            value={isPracticeMode ? "" : userInput}
+            disabled={isPracticeMode}
+            readOnly={isPracticeMode}
+            tabIndex={isPracticeMode ? -1 : 0}
+            aria-hidden={isPracticeMode}
+            onChange={isPracticeMode ? undefined : onInputChange}
+            onKeyDown={isPracticeMode ? undefined : handleInputKeyDown}
+            onBeforeInput={isPracticeMode ? undefined : handleInputBeforeInput}
+            onFocus={isPracticeMode ? undefined : onFocus}
+            onBlur={isPracticeMode ? undefined : onBlur}
+            autoFocus={!isMobile && !isPracticeMode}
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
             enterKeyHint={isCompleted ? "next" : "done"}
-            placeholder={inputPlaceholder}
+            placeholder={
+              isPracticeMode
+                ? "연습 모드 — 구절 위에서 입력하세요"
+                : inputPlaceholder
+            }
             style={{
               fontSize: `${inputFontSize}px`,
               fontFamily: activeFontFamily,

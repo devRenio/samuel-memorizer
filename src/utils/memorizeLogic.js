@@ -1,3 +1,5 @@
+import { stripPracticeParens } from "./practiceTyping";
+
 // 쉼표, 하이픈, 슬래시 무시용
 const PUNCT_RE = /[,\-/]/g;
 const WORD_TOKEN_RE = /[0-9A-Za-z가-힣]/;
@@ -11,6 +13,8 @@ export const maskLenKeepPunct = (tok) =>
 
 /** 모드2/4: 길이 힌트 X, 문장부호는 그대로 */
 export const maskOneKeepPunct = (tok) => tok.replace(/[0-9A-Za-z가-힣]+/g, "_");
+
+export const PRACTICE_MODE = 0;
 
 /** 장절 파싱: '(요 5:38-39)' -> { book: '요', chap: '5', verse: '38-39' } */
 export const parseRefParts = (ref) => {
@@ -48,6 +52,13 @@ export const generateProblem = (
   let answers = [];
 
   switch (mode) {
+    case PRACTICE_MODE: {
+      const practiceText = stripPracticeParens(`${reference} ${verse}`);
+      problemText = practiceText;
+      answers = [];
+      break;
+    }
+
     case 1: {
       // 빈칸 모드
       const numBlanks = Math.max(

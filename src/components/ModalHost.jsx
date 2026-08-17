@@ -8,6 +8,7 @@ import {
   APP_VERSE_REF,
 } from "../constants/appInfo";
 import PrivacyPolicyBody from "./PrivacyPolicyBody";
+import { PRACTICE_INTRO_MESSAGE } from "../utils/practiceIntro";
 
 export default function ModalHost({
   activeModal,
@@ -38,6 +39,7 @@ export default function ModalHost({
   onWholeLevel,
   onOpenPrivacy,
   onOpenContact,
+  onDismissPracticeIntroPermanent,
   scriptureVersions,
   scriptureVersionId,
   onSelectScriptureVersion,
@@ -116,6 +118,37 @@ export default function ModalHost({
           </>
         )}
 
+        {activeModal === "practice-intro" && (
+          <>
+            <h3 style={{ marginBottom: "15px" }}>연습 모드</h3>
+            <p
+              style={{
+                textAlign: "center",
+                marginBottom: "24px",
+                lineHeight: "1.6",
+              }}
+            >
+              {PRACTICE_INTRO_MESSAGE}
+            </p>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                className="full-width-btn"
+                style={{ marginBottom: 0 }}
+                onClick={onDismissPracticeIntroPermanent}
+              >
+                다시 보지 않기
+              </button>
+              <button
+                className="full-width-btn"
+                style={{ marginBottom: 0 }}
+                onClick={onClose}
+              >
+                닫기
+              </button>
+            </div>
+          </>
+        )}
+
         {activeModal === "confirm" && (
           <>
             <h3 style={{ marginBottom: "15px" }}>확인</h3>
@@ -167,6 +200,10 @@ export default function ModalHost({
               1. 과정과 일차를 선택하세요.
               <br />
               2. 원하는 모드를 선택하여 암송을 시작하세요.
+              <br />
+              &nbsp;&nbsp;· <strong>연습 모드</strong>: 흐린 구절 위에서 따라 입력
+              <br />
+              &nbsp;&nbsp;· <strong>빈칸 모드</strong> 등: 빈칸에 답 입력
               <br />
               3. 정답을 입력하고 <strong>Space</strong>나 <strong>Enter</strong>
               를 누르세요.

@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:pages": "vite build && node scripts/copy-to-samuel.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

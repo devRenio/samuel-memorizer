@@ -446,6 +446,18 @@ button:hover {
   opacity: 0.5;
 }
 
+.answer-input--paused,
+.answer-input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-bottom-color: var(--border-color);
+}
+
+.answer-input--paused:focus,
+.answer-input:disabled:focus {
+  border-color: var(--border-color);
+}
+
 /* --- 7. 하단 상태바 --- */
 .status-bar {
   display: flex;
@@ -740,6 +752,133 @@ input[type="checkbox"] {
   margin: 0;
   padding: 0;
   display: block; /* 중요: Flex Item이 아닌 블록 요소로 동작 */
+}
+
+.practice-stack-wrap {
+  width: 100%;
+  text-align: center;
+}
+
+.practice-stack {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  align-items: start;
+  max-width: 100%;
+  text-align: center;
+  line-height: inherit;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  cursor: text;
+  vertical-align: top;
+}
+
+.practice-layer {
+  grid-area: 1 / 1;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  pointer-events: none;
+}
+
+.practice-ghost {
+  color: var(--text-primary);
+  opacity: 0.22;
+  user-select: none;
+  visibility: visible;
+}
+
+.practice-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+.practice-input {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: inherit;
+  font: inherit;
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.practice-input::selection {
+  background: transparent;
+  color: transparent;
+}
+
+.practice-char-caret {
+  position: relative;
+}
+
+.practice-char-caret::before,
+.practice-end-caret::before {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-right: -2px;
+  vertical-align: -0.1em;
+  background: var(--text-primary);
+  animation: practiceCaretBlink 1s steps(1) infinite;
+}
+
+.practice-end-caret {
+  display: inline;
+}
+
+@keyframes practiceCaretBlink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.practice-complete-hint {
+  margin: 14px 0 0;
+  font-size: 0.72em;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.practice-char {
+  display: inline;
+  vertical-align: baseline;
+  line-height: inherit;
+}
+
+.practice-char-pending {
+  color: transparent;
+  user-select: none;
+}
+
+.practice-char-correct {
+  color: var(--text-primary);
+  font-weight: inherit;
+}
+
+.practice-char-wrong {
+  color: var(--color-fail);
+  font-weight: inherit;
 }
 
 @keyframes flashEffect {
