@@ -45,7 +45,7 @@ function ExamTutorialPromptModal({
   );
 }
 
-export default function ExamModeScreen({ originalScriptures, onBack }) {
+export default function ExamModeScreen({ originalScriptures, onBack, isActive }) {
   const [phase, setPhase] = useState("setup");
   const [courseNum, setCourseNum] = useState(null);
   const [selectedDays, setSelectedDays] = useState([]);
@@ -196,15 +196,23 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
   };
 
   useEffect(() => {
-    if (phase !== "setup") return;
-    if (!shouldShowExamTutorialPrompt()) return;
+    if (isActive) return;
+    setShowTutorialPrompt(false);
+    setShowTutorialSkipConfirm(false);
+    setTutorialActive(false);
+  }, [isActive]);
+
+  useEffect(() => {
+    if (!isActive || phase !== "setup" || !shouldShowExamTutorialPrompt()) {
+      return;
+    }
 
     const timer = window.setTimeout(() => {
       setShowTutorialPrompt(true);
     }, 300);
 
     return () => window.clearTimeout(timer);
-  }, [phase]);
+  }, [isActive, phase]);
 
   return (
     <div
@@ -482,14 +490,14 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
       </div>
 
       <ExamTutorial
-        active={tutorialActive}
+        active={tutorialActive && isActive}
         stepIndex={tutorialStep}
         steps={EXAM_TUTORIAL_STEPS}
         onNext={advanceTutorial}
         onRequestSkip={() => setShowTutorialSkipConfirm(true)}
       />
 
-      {showTutorialPrompt && (
+      {showTutorialPrompt && isActive && (
         <ExamTutorialPromptModal
           open
           onBackdropClick={skipTutorialPrompt}
@@ -515,7 +523,7 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
         </ExamTutorialPromptModal>
       )}
 
-      {showTutorialSkipConfirm && (
+      {showTutorialSkipConfirm && isActive && (
         <ExamTutorialPromptModal
           open
           zIndex={2600}

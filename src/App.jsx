@@ -212,6 +212,7 @@ function App() {
           >
             <ExamModeScreen
               originalScriptures={app.originalScriptures}
+              isActive={isExamTab}
               onBack={() => setActiveAppTab("study")}
             />
           </section>
