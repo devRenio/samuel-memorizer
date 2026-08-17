@@ -8,16 +8,20 @@ import Navbar from "./components/Navbar";
 import ModeBar from "./components/ModeBar";
 import StudyArea from "./components/StudyArea";
 import StatusBar from "./components/StatusBar";
+import ExamModeScreen from "./components/ExamModeScreen";
 import ModalHost, { DEFAULT_FONT } from "./components/ModalHost";
 import { useSamuelApp } from "./hooks/useSamuelApp";
 import { useAuth } from "./hooks/useAuth";
 import { usePresence } from "./hooks/usePresence";
 import { isAdminUser } from "./constants/admin";
+import { useState } from "react";
 
 function App() {
   const auth = useAuth();
   const presence = usePresence({ userid: auth.user?.userid });
   const app = useSamuelApp({ onboardingBlocked: auth.onboardingBlocked });
+  const [activeAppTab, setActiveAppTab] = useState("study");
+  const isExamTab = activeAppTab === "exam";
 
   const handleLogout = async () => {
     app.setActiveModal(null);
@@ -91,6 +95,7 @@ function App() {
         app.isMobile ? "is-mobile" : "",
         app.keyboard.typingMode ? "typing-mode" : "",
         app.keyboard.keyboardOpen ? "keyboard-open" : "",
+        isExamTab ? "is-exam-tab" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -106,77 +111,112 @@ function App() {
           : {}),
       }}
     >
-      <div className="app-chrome">
-        <Navbar
-          navRef={app.navRef}
-          activeMenu={app.activeMenu}
-          toggleMenu={app.toggleMenu}
-          dayProgressLabels={app.dayProgressLabels}
-          onSelectCourse={app.selectCourse}
-          onSelectDay={app.selectDay}
-          onRequestReset={app.requestDayReset}
-          onOpenFont={() => app.setActiveModal("font")}
-          onOpenStats={() => {
-            app.setStatsTab("summary");
-            app.setActiveModal("stats");
-          }}
-          onOpenAccount={() => app.setActiveModal("account")}
-          onOpenInfo={() => app.setActiveModal("info")}
-          onToggleTheme={app.toggleTheme}
-          onToggleFullscreen={app.toggleFullscreen}
-          theme={app.theme}
-        />
+      <div className="app-viewport">
+        <div
+          className={`app-viewport-track${isExamTab ? " is-exam" : ""}`}
+          aria-hidden={false}
+        >
+          <section
+            className="app-panel app-panel--study"
+            aria-label="암송 모드"
+            aria-hidden={isExamTab}
+          >
+            <div className="app-chrome">
+              <Navbar
+                navRef={app.navRef}
+                activeMenu={app.activeMenu}
+                toggleMenu={app.toggleMenu}
+                dayProgressLabels={app.dayProgressLabels}
+                onSelectCourse={app.selectCourse}
+                onSelectDay={app.selectDay}
+                onRequestReset={app.requestDayReset}
+                onOpenFont={() => app.setActiveModal("font")}
+                onOpenStats={() => {
+                  app.setStatsTab("summary");
+                  app.setActiveModal("stats");
+                }}
+                onOpenAccount={() => app.setActiveModal("account")}
+                onOpenInfo={() => app.setActiveModal("info")}
+                onToggleTheme={app.toggleTheme}
+                onToggleFullscreen={app.toggleFullscreen}
+                theme={app.theme}
+              />
 
-        <ModeBar
-          currentMode={app.currentMode}
-          blankNum={app.blankNum}
-          wholeLevelNum={app.wholeLevelNum}
-          mergeBlanks={app.mergeBlanks}
-          onModeSelect={app.handleModeSelect}
-          onOpenBlankModal={() => app.setActiveModal("blank")}
-          onOpenWholeModal={() => app.setActiveModal("whole")}
-          onOpenHelp={() => app.setActiveModal("help")}
-          onMergeBlanksChange={app.handleMergeBlanksChange}
-        />
+              <ModeBar
+                currentMode={app.currentMode}
+                blankNum={app.blankNum}
+                wholeLevelNum={app.wholeLevelNum}
+                mergeBlanks={app.mergeBlanks}
+                onModeSelect={app.handleModeSelect}
+                onOpenBlankModal={() => app.setActiveModal("blank")}
+                onOpenWholeModal={() => app.setActiveModal("whole")}
+                onOpenHelp={() => app.setActiveModal("help")}
+                onMergeBlanksChange={app.handleMergeBlanksChange}
+              />
+            </div>
+
+            <div className="study-viewport">
+              <StudyArea
+                problemContainerRef={app.problemContainerRef}
+                currentMode={app.currentMode}
+                currentProblem={app.currentProblem}
+                isError={app.isError}
+                isEmpty={app.scripture.length === 0}
+                activeFontFamily={app.activeFontFamily}
+                displayFontSize={app.displayFontSize}
+                isBold={app.isBold}
+                typingMode={app.keyboard.typingMode}
+                mergeBlanks={app.mergeBlanks}
+                isMobile={app.isMobile}
+                isCompleted={app.isCompleted}
+                userInput={app.userInput}
+                inputRef={app.inputRef}
+                inputFontSize={app.inputFontSize}
+                courseName={app.courseName}
+                leftVerse={app.leftVerse}
+                onSkip={() => app.displayProblem(app.currentMode)}
+                onDismissKeyboard={app.keyboard.dismissKeyboard}
+                onInputChange={app.handleInputChange}
+                onPracticeInput={app.handlePracticeInput}
+                onKeyDown={app.handleKeyDown}
+                onBeforeInput={app.handleBeforeInput}
+                onSubmit={() => app.submitAnswer()}
+                onFocus={app.keyboard.handleInputFocus}
+                onBlur={app.keyboard.handleInputBlur}
+              />
+
+              <StatusBar
+                courseName={app.courseName}
+                leftVerse={app.leftVerse}
+                failNum={app.failNum}
+                onSkip={() => app.displayProblem(app.currentMode)}
+                onOpenWrong={handleOpenWrong}
+                onRequestReset={app.requestDayReset}
+              />
+
+              <button
+                type="button"
+                className="app-mode-tab app-mode-tab--exam"
+                onClick={() => setActiveAppTab("exam")}
+                aria-label="시험 모드로 이동"
+              >
+                시험 모드 ▶
+              </button>
+            </div>
+          </section>
+
+          <section
+            className="app-panel app-panel--exam"
+            aria-label="시험 모드"
+            aria-hidden={!isExamTab}
+          >
+            <ExamModeScreen
+              originalScriptures={app.originalScriptures}
+              onBack={() => setActiveAppTab("study")}
+            />
+          </section>
+        </div>
       </div>
-
-      <StudyArea
-        problemContainerRef={app.problemContainerRef}
-        currentMode={app.currentMode}
-        currentProblem={app.currentProblem}
-        isError={app.isError}
-        isEmpty={app.scripture.length === 0}
-        activeFontFamily={app.activeFontFamily}
-        displayFontSize={app.displayFontSize}
-        isBold={app.isBold}
-        typingMode={app.keyboard.typingMode}
-        mergeBlanks={app.mergeBlanks}
-        isMobile={app.isMobile}
-        isCompleted={app.isCompleted}
-        userInput={app.userInput}
-        inputRef={app.inputRef}
-        inputFontSize={app.inputFontSize}
-        courseName={app.courseName}
-        leftVerse={app.leftVerse}
-        onSkip={() => app.displayProblem(app.currentMode)}
-        onDismissKeyboard={app.keyboard.dismissKeyboard}
-        onInputChange={app.handleInputChange}
-        onPracticeInput={app.handlePracticeInput}
-        onKeyDown={app.handleKeyDown}
-        onBeforeInput={app.handleBeforeInput}
-        onSubmit={() => app.submitAnswer()}
-        onFocus={app.keyboard.handleInputFocus}
-        onBlur={app.keyboard.handleInputBlur}
-      />
-
-      <StatusBar
-        courseName={app.courseName}
-        leftVerse={app.leftVerse}
-        failNum={app.failNum}
-        onSkip={() => app.displayProblem(app.currentMode)}
-        onOpenWrong={handleOpenWrong}
-        onRequestReset={app.requestDayReset}
-      />
 
       <ModalHost
         activeModal={app.activeModal}

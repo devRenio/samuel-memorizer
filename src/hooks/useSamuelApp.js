@@ -1147,6 +1147,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     verseWrongCounts,
     setVerseWrongCounts,
     selectedScriptures,
+    originalScriptures,
     completedVerseRefs,
     dayProgressLabels,
     toggleTheme,
