@@ -1,15 +1,48 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   buildExamQuestions,
   buildTopicPrompt,
   getExamPreview,
   gradeTopicAnswers,
 } from "../utils/examLogic";
+import { EXAM_TUTORIAL_STEPS } from "../data/examTutorialSteps";
+import ExamTutorial from "./ExamTutorial";
+import {
+  markExamTutorialCompleted,
+  markExamTutorialPromptSeen,
+  shouldShowExamTutorialPrompt,
+} from "../utils/examTutorial";
 
 const ALL_DAYS = [1, 2, 3, 4, 5, 6];
 
 function createEmptyAnswers(count) {
   return Array.from({ length: count }, () => "");
+}
+
+function ExamTutorialPromptModal({
+  open,
+  zIndex = 2400,
+  onBackdropClick,
+  children,
+}) {
+  if (!open) return null;
+
+  return createPortal(
+    <div
+      className="modal-overlay exam-tutorial-prompt-overlay"
+      style={{ zIndex }}
+      onClick={onBackdropClick}
+    >
+      <div
+        className="modal-content exam-tutorial-prompt"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 export default function ExamModeScreen({ originalScriptures, onBack }) {
@@ -22,6 +55,10 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
   const [topicResults, setTopicResults] = useState([]);
   const [showTopicReview, setShowTopicReview] = useState(false);
   const [lastTopicGrade, setLastTopicGrade] = useState(null);
+  const [tutorialActive, setTutorialActive] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
+  const [showTutorialSkipConfirm, setShowTutorialSkipConfirm] = useState(false);
 
   const preview = useMemo(() => {
     if (!courseNum || selectedDays.length === 0) {
@@ -129,6 +166,46 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
     handleStartExam();
   };
 
+  const completeTutorial = () => {
+    markExamTutorialCompleted();
+    markExamTutorialPromptSeen();
+    setTutorialActive(false);
+    setTutorialStep(0);
+    setShowTutorialSkipConfirm(false);
+  };
+
+  const startTutorial = () => {
+    setShowTutorialPrompt(false);
+    markExamTutorialPromptSeen();
+    setTutorialStep(0);
+    setTutorialActive(true);
+    setShowTutorialSkipConfirm(false);
+  };
+
+  const advanceTutorial = () => {
+    if (tutorialStep >= EXAM_TUTORIAL_STEPS.length - 1) {
+      completeTutorial();
+      return;
+    }
+    setTutorialStep((prev) => prev + 1);
+  };
+
+  const skipTutorialPrompt = () => {
+    markExamTutorialPromptSeen();
+    setShowTutorialPrompt(false);
+  };
+
+  useEffect(() => {
+    if (phase !== "setup") return;
+    if (!shouldShowExamTutorialPrompt()) return;
+
+    const timer = window.setTimeout(() => {
+      setShowTutorialPrompt(true);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
   return (
     <div
       className={`exam-mode-screen${phase === "exam" ? "" : " exam-mode-screen--centered"}`}
@@ -145,13 +222,29 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
       <div className="exam-mode-content">
         {phase === "setup" && (
           <div className="exam-setup">
-            <p className="exam-mode-eyebrow">Samuel Exam</p>
-            <h1 className="exam-mode-title">시험 설정</h1>
+            <div className="exam-setup-header">
+              <div className="exam-setup-header-copy">
+                <p className="exam-mode-eyebrow">Samuel Exam</p>
+                <h1 className="exam-mode-title">시험 설정</h1>
+              </div>
+              <button
+                type="button"
+                className="exam-help-btn"
+                onClick={startTutorial}
+                aria-label="시험 모드 도움말"
+                data-tour="exam-tour-help"
+              >
+                ?
+              </button>
+            </div>
             <p className="exam-mode-desc">
               과정과 일차를 선택하면 실제 시험처럼 주제별로 구절을 작성합니다.
             </p>
 
-            <section className="exam-setup-section">
+            <section
+              className="exam-setup-section"
+              data-tour="exam-tour-course"
+            >
               <h2 className="exam-setup-heading">과정</h2>
               <div className="exam-course-grid">
                 {[1, 2, 3, 4].map((num) => (
@@ -167,7 +260,7 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
               </div>
             </section>
 
-            <section className="exam-setup-section">
+            <section className="exam-setup-section" data-tour="exam-tour-days">
               <h2 className="exam-setup-heading">일차</h2>
               <div className="exam-day-grid">
                 {ALL_DAYS.map((dayNum) => {
@@ -189,7 +282,7 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
               </div>
             </section>
 
-            <div className="exam-preview-card">
+            <div className="exam-preview-card" data-tour="exam-tour-preview">
               <div className="exam-preview-row">
                 <span>출제 주제</span>
                 <strong>{preview.topicCount}개</strong>
@@ -387,6 +480,73 @@ export default function ExamModeScreen({ originalScriptures, onBack }) {
           </div>
         )}
       </div>
+
+      <ExamTutorial
+        active={tutorialActive}
+        stepIndex={tutorialStep}
+        steps={EXAM_TUTORIAL_STEPS}
+        onNext={advanceTutorial}
+        onRequestSkip={() => setShowTutorialSkipConfirm(true)}
+      />
+
+      {showTutorialPrompt && (
+        <ExamTutorialPromptModal
+          open
+          onBackdropClick={skipTutorialPrompt}
+        >
+          <h3>시험 모드 안내</h3>
+          <p>처음 이용하시는군요. 시험 모드 이용 방법을 안내해 드릴까요?</p>
+          <div className="exam-tutorial-prompt-actions">
+            <button
+              type="button"
+              className="exam-secondary-btn"
+              onClick={skipTutorialPrompt}
+            >
+              건너뛰기
+            </button>
+            <button
+              type="button"
+              className="exam-primary-btn"
+              onClick={startTutorial}
+            >
+              튜토리얼 보기
+            </button>
+          </div>
+        </ExamTutorialPromptModal>
+      )}
+
+      {showTutorialSkipConfirm && (
+        <ExamTutorialPromptModal
+          open
+          zIndex={2600}
+          onBackdropClick={() => setShowTutorialSkipConfirm(false)}
+        >
+          <h3>튜토리얼 건너뛰기</h3>
+          <p>
+            시험 모드 안내를 건너뛰시겠습니까?
+            <br />
+            <span className="exam-tutorial-prompt-note">
+              설정 화면 우측 상단 ? 버튼에서 다시 볼 수 있습니다.
+            </span>
+          </p>
+          <div className="exam-tutorial-prompt-actions">
+            <button
+              type="button"
+              className="exam-secondary-btn"
+              onClick={() => setShowTutorialSkipConfirm(false)}
+            >
+              계속 보기
+            </button>
+            <button
+              type="button"
+              className="exam-primary-btn"
+              onClick={completeTutorial}
+            >
+              건너뛰기
+            </button>
+          </div>
+        </ExamTutorialPromptModal>
+      )}
     </div>
   );
 }
