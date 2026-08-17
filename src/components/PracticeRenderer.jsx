@@ -131,7 +131,12 @@ export default function PracticeRenderer({
 
         <div className="practice-layer practice-overlay" aria-live="polite">
           {chars.map((expectedChar, index) => {
-            const state = getPracticeCharState(expectedChar, draft[index]);
+            const state = getPracticeCharState(
+              expectedChar,
+              draft[index],
+              index,
+              typedLength,
+            );
             const isCaret = index === typedLength;
 
             if (state === "pending") {
@@ -157,7 +162,7 @@ export default function PracticeRenderer({
                 key={index}
                 className={[
                   "practice-char",
-                  state === "correct"
+                  state === "correct" || state === "current"
                     ? "practice-char-correct"
                     : "practice-char-wrong",
                   isCaret ? "practice-char-caret" : "",

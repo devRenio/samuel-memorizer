@@ -20,10 +20,15 @@ export function isPracticeComplete(targetText, userInput) {
   return Boolean(targetText) && userInput === targetText;
 }
 
-/** 연습 모드: 위치별 정오답 */
-export function getPracticeCharState(expectedChar, typedChar) {
-  if (typedChar === undefined) return "pending";
-  return typedChar === expectedChar ? "correct" : "wrong";
+/** 연습 모드: 위치별 정오답 (현재 입력 중인 마지막 글자는 오답이어도 빨간색 표시 안 함) */
+export function getPracticeCharState(expectedChar, typedChar, index, typedLength) {
+  if (typedChar === undefined || index >= typedLength) return "pending";
+
+  if (index < typedLength - 1) {
+    return typedChar === expectedChar ? "correct" : "wrong";
+  }
+
+  return typedChar === expectedChar ? "correct" : "current";
 }
 
 /** 연습 모드: 순차 입력에 문자 추가 */
