@@ -37,7 +37,7 @@ import {
 } from "../utils/problemText";
 import { gradePhrase } from "../utils/phraseGrading";
 import { formatScriptureData, getDayProgress } from "../utils/scriptureHelpers";
-import { findVersesByRefs, parseCourseNum } from "../utils/progressPayload";
+import { findVersesByRefs, parseCourseNum } from "../utils/scriptureUtils";
 import { useIsMobile } from "./useIsMobile";
 import { useKeyboardLayout } from "./useKeyboardLayout";
 
@@ -116,7 +116,6 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
   const attemptsRef = useRef(0);
   const mergeBlanksRef = useRef(mergeBlanks);
   mergeBlanksRef.current = mergeBlanks;
-  const pendingCourseNumRef = useRef(null);
 
   const isMobile = useIsMobile();
   const keyboard = useKeyboardLayout(isMobile, inputRef);
@@ -860,63 +859,6 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     });
   }, [selectedScriptures, completedVerseRefs]);
 
-  const getProgressSnapshot = useCallback(
-    () => ({
-      cumulativeStats,
-      completedVerseRefs,
-      verseWrongCounts,
-      courseNum: parseCourseNum(courseName),
-      wrongVerseRefs: wrongVerses.map((v) => v.reference),
-    }),
-    [
-      cumulativeStats,
-      completedVerseRefs,
-      verseWrongCounts,
-      courseName,
-      wrongVerses,
-    ],
-  );
-
-  const applyProgressSnapshot = useCallback(
-    (data) => {
-      if (!data) return false;
-
-      setCumulativeStats(
-        data.cumulativeStats ?? { total: 0, correct: 0, wrong: 0 },
-      );
-      setVerseWrongCounts(data.verseWrongCounts ?? {});
-      setCompletedVerseRefs(data.completedVerseRefs ?? []);
-
-      if (data.courseNum) {
-        if (originalScriptures.length > 0) {
-          selectCourse(data.courseNum);
-          pendingCourseNumRef.current = null;
-        } else {
-          pendingCourseNumRef.current = data.courseNum;
-        }
-      }
-
-      if (data.wrongVerseRefs?.length && originalScriptures.length > 0) {
-        setWrongVerses(findVersesByRefs(originalScriptures, data.wrongVerseRefs));
-      } else {
-        setWrongVerses([]);
-      }
-
-      setScripture([]);
-      setLeftVerse(0);
-      setFailNum(0);
-      setCurrentProblem(null);
-      setUserInput("");
-      setHasFailedCurrent(false);
-      setIsCompleted(false);
-      setAttempts(0);
-      attemptsRef.current = 0;
-
-      return true;
-    },
-    [originalScriptures, selectCourse],
-  );
-
   useEffect(() => {
     if (onboardingBlocked) return;
     if (localStorage.getItem(TUTORIAL_STORAGE_KEY) === "true") return;
@@ -977,9 +919,7 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
   useEffect(() => {
     if (originalScriptures.length === 0) return;
 
-    const courseNum =
-      pendingCourseNumRef.current ?? parseCourseNum(courseName);
-    pendingCourseNumRef.current = null;
+    const courseNum = parseCourseNum(courseName);
 
     if (courseNum) {
       selectCourse(courseNum);
@@ -1180,7 +1120,5 @@ export function useSamuelApp({ onboardingBlocked = false } = {}) {
     completeTutorial,
     dismissPracticeIntro,
     dismissPracticeIntroPermanent,
-    getProgressSnapshot,
-    applyProgressSnapshot,
   };
 }

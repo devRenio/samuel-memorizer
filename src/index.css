@@ -2481,7 +2481,7 @@ input[type="checkbox"] {
   letter-spacing: 0.05em;
 }
 
-/* --- 로그인 / 게스트 --- */
+/* --- 로그인 --- */
 .app-loading {
   min-height: 100dvh;
   display: flex;
@@ -2528,33 +2528,6 @@ input[type="checkbox"] {
   text-align: center;
 }
 
-.auth-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.auth-tab {
-  flex: 1;
-  padding: 10px 0;
-  border-radius: 12px;
-  background: var(--hover-bg);
-  color: var(--text-secondary);
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.auth-tab.active {
-  background: var(--text-primary);
-  color: var(--bg-color);
-  font-weight: 700;
-}
-
-.auth-tab:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -2598,90 +2571,6 @@ input[type="checkbox"] {
   margin-bottom: 0;
 }
 
-.auth-verify-panel {
-  text-align: center;
-}
-
-.auth-verify-desc {
-  margin: 0 0 10px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.auth-verify-spam-notice {
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  line-height: 1.55;
-  text-align: left;
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--text-primary) 6%, var(--hover-bg));
-  border: 1px dashed var(--border-color);
-}
-
-.auth-verify-hint-spam {
-  display: block;
-  margin-top: 6px;
-  color: var(--text-primary);
-}
-
-.auth-verify-hint {
-  margin: -4px 0 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.auth-verify-message {
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-success, #2e7d32);
-  text-align: center;
-}
-
-.auth-verify-resend {
-  margin-top: 10px;
-  margin-bottom: 0;
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-}
-
-.auth-verify-resend:hover:not(:disabled) {
-  background: var(--hover-bg);
-}
-
-.auth-verify-banner {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--color-fail) 35%, var(--border-color));
-  background: color-mix(in srgb, var(--color-fail) 6%, var(--hover-bg));
-  text-align: left;
-}
-
-.auth-verify-banner-title {
-  margin: 0 0 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-fail);
-}
-
-.auth-verify-banner-desc {
-  margin: 0 0 10px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
-.auth-verify-actions {
-  display: flex;
-  gap: 8px;
-}
-
 .info-account-section {
   margin: 0 0 16px;
   text-align: left;
@@ -2693,12 +2582,6 @@ input[type="checkbox"] {
 
 .account-modal .info-account-card {
   margin: 0;
-}
-
-.account-modal .info-account-card--guest {
-  padding: 0;
-  border: none;
-  background: transparent;
 }
 
 .info-account-card {
@@ -2798,128 +2681,11 @@ input[type="checkbox"] {
   line-height: 1.4;
 }
 
-.info-sync-section {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  background: var(--hover-bg);
-  text-align: left;
-}
-
-.info-sync-label {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.info-sync-desc {
-  margin: 0 0 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.info-sync-meta {
-  margin: 0 0 10px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.info-sync-feedback {
-  margin: 0 0 10px;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.info-sync-feedback--ok {
-  color: var(--color-success, #2e7d32);
-}
-
-.info-sync-feedback--error {
-  color: var(--color-fail);
-}
-
-.info-sync-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.info-sync-btn {
-  flex: 1;
-  margin: 0;
-  padding: 10px 0;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
-}
-
-.info-sync-btn--save {
-  background: var(--text-primary);
-  color: var(--bg-color);
-  border-color: var(--text-primary);
-}
-
-.info-sync-btn--save:hover:not(:disabled) {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  border-color: var(--border-color);
-}
-
-.info-sync-btn--load {
-  background: transparent;
-  color: var(--text-primary);
-}
-
-.info-sync-btn--load:hover:not(:disabled) {
-  background: var(--text-primary);
-  color: var(--bg-color);
-  border-color: var(--text-primary);
-}
-
-.info-sync-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .info-account-btns {
   display: flex;
   gap: 8px;
   margin-top: 14px;
   align-items: stretch;
-}
-
-.info-account-card--guest .info-account-label {
-  margin-bottom: 6px;
-  text-align: left;
-}
-
-.info-account-card--guest .info-account-guest-desc {
-  margin-bottom: 12px;
-}
-
-.info-account-card--guest .info-account-actions {
-  padding: 0;
-  border: none;
-  background: transparent;
-  margin-top: 0;
-}
-
-.info-account-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin: 0 0 10px;
-  text-align: center;
-}
-
-.info-account-guest-desc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0;
 }
 
 .info-account-note {
@@ -3590,24 +3356,6 @@ input[type="checkbox"] {
   color: var(--text-primary);
   border-color: var(--text-secondary);
   background: var(--hover-bg);
-}
-
-.auth-modal--signup .auth-form {
-  gap: 10px;
-}
-
-.auth-modal--signup .auth-field span {
-  font-size: 12px;
-}
-
-.auth-modal--signup .auth-field input {
-  padding: 9px 12px;
-}
-
-.auth-modal--signup .auth-verify-hint {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.45;
 }
 
 .auth-privacy-consent {
