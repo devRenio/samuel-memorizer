@@ -6,6 +6,7 @@ import { jbchBffPlugin } from "./vite-plugin-jbch-bff.js";
 export default defineConfig({
   plugins: [react(), jbchBffPlugin(), VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false,
       includeAssets: ["symbol.png", "fonts/*.TTF"],
       manifest: {
         name: "사무엘학교 암송 도우미",
@@ -32,6 +33,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        importScripts: ["sw-update.js"],
         globPatterns: ["**/*.{js,css,html,json,png}"],
         runtimeCaching: [
           {
