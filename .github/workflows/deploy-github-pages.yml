@@ -28,7 +28,7 @@ jobs:
       - name: Build for GitHub Pages
         run: npm run build
         env:
-          VITE_JBCH_BFF_URL: ${{ secrets.VITE_JBCH_BFF_URL }}
+          VITE_JBCH_BFF_URL: https://samuel-jbch-bff.devrenio.workers.dev/api/jbch
           VITE_ADMIN_USERIDS: ${{ secrets.VITE_ADMIN_USERIDS }}
           VITE_JBCH_SUPPORT_LABEL: ${{ secrets.VITE_JBCH_SUPPORT_LABEL }}
 

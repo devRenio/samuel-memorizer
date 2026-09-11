@@ -49,7 +49,7 @@ Samuel Memorizer는 깨사모(jbch) API를 **브라우저에서 직접 호출하
 | 로컬 (`npm run dev`) | Vite 플러그인 | `/api/jbch` (same-origin, env 불필요) |
 | GitHub Pages | Cloudflare Worker | `VITE_JBCH_BFF_URL` (빌드 시 주입) |
 
-`VITE_JBCH_BFF_URL`이 **없고** 프로덕션 빌드면 → 깨사모 기능 비활성, **게스트 모드만** 동작합니다.
+프로덕션은 CI에서 `VITE_JBCH_BFF_URL`을 주입하고, 값이 없으면 `https://samuel-jbch-bff.devrenio.workers.dev/api/jbch`를 사용합니다.
 
 ---
 
@@ -180,7 +180,7 @@ CORS preflight. `204` + `Access-Control-Allow-*` 헤더.
 
 | 변수 | 필수 | 설명 | 예시 |
 |------|------|------|------|
-| `VITE_JBCH_BFF_URL` | prod ✅ | Worker BFF base URL | `https://samuel-jbch.xxx.workers.dev/api/jbch` |
+| `VITE_JBCH_BFF_URL` | prod ✅ | Worker BFF base URL | `https://samuel-jbch-bff.devrenio.workers.dev/api/jbch` |
 | `VITE_ADMIN_USERIDS` | 선택 | 관리자 UI userid (쉼표 구분) | `eunho715` |
 | `VITE_JBCH_SUPPORT_LABEL` | 선택 | 문의 화면 수신자 표시명 | `서울양천 공은호 형제` |
 
@@ -282,7 +282,7 @@ wrangler deploy
 
 ```
 Published samuel-jbch-bff (X.XX sec)
-  https://samuel-jbch-bff.<subdomain>.workers.dev
+  https://samuel-jbch-bff.devrenio.workers.dev
 ```
 
 ### 5-5. Worker 동작 확인 (curl)
@@ -292,12 +292,12 @@ Published samuel-jbch-bff (X.XX sec)
 curl -i -X OPTIONS \
   -H "Origin: https://devrenio.github.io" \
   -H "Access-Control-Request-Method: POST" \
-  "https://samuel-jbch-bff.<subdomain>.workers.dev/api/jbch/login"
+  "https://samuel-jbch-bff.devrenio.workers.dev/api/jbch/login"
 
 # 세션 없음
 curl -i \
   -H "Origin: https://devrenio.github.io" \
-  "https://samuel-jbch-bff.<subdomain>.workers.dev/api/jbch/session"
+  "https://samuel-jbch-bff.devrenio.workers.dev/api/jbch/session"
 # → {"loggedIn":false}
 ```
 
@@ -317,7 +317,7 @@ Cloudflare Dashboard → Workers → 해당 Worker → Settings → Domains & Ro
 Worker 배포 **후** `samuel-memorizer-app/.env`:
 
 ```env
-VITE_JBCH_BFF_URL=https://samuel-jbch-bff.<subdomain>.workers.dev/api/jbch
+VITE_JBCH_BFF_URL=https://samuel-jbch-bff.devrenio.workers.dev/api/jbch
 VITE_ADMIN_USERIDS=eunho715
 VITE_JBCH_SUPPORT_LABEL=서울양천 공은호 형제
 ```
@@ -410,7 +410,7 @@ samuel_jbch_hash_v3=<hash>; Path=/api/jbch; HttpOnly; SameSite=None; Secure; Par
 
 ### 게스트 모드만 보임
 
-- prod 빌드에 `VITE_JBCH_BFF_URL` 없음 → `isJbchConfigured()` false
+- 프로덕션 Worker URL이 바뀌었는데 `.github/workflows/deploy-github-pages.yml` / `src/constants/bff.js`가 예전 주소인 경우
 - `.env` 수정 후 `npm run build:pages` 재실행 필요
 
 ---

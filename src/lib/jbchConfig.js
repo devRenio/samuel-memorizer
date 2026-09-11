@@ -1,3 +1,5 @@
+import { PROD_JBCH_BFF_URL } from "../constants/bff";
+
 /** 클라이언트는 BFF만 호출 — tokenId/dev_name은 서버(worker) env에만 둡니다. */
 
 export function getJbchBffBase() {
@@ -6,7 +8,7 @@ export function getJbchBffBase() {
 
   const explicit = import.meta.env.VITE_JBCH_BFF_URL?.trim();
   if (explicit) return explicit.replace(/\/+$/, "");
-  return "";
+  return PROD_JBCH_BFF_URL;
 }
 
 export function isJbchConfigured() {

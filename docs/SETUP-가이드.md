@@ -138,13 +138,13 @@ wrangler deploy
 
 ```
 Published samuel-jbch-bff
-  https://samuel-jbch-bff.abc123def456.workers.dev
+  https://samuel-jbch-bff.devrenio.workers.dev
 ```
 
 **이 URL을 메모장에 복사해 두세요.**  
 아래에서 `<WORKER_URL>`이라고 부릅니다.
 
-예: `https://samuel-jbch-bff.abc123def456.workers.dev`
+예: `https://samuel-jbch-bff.devrenio.workers.dev`
 
 > CORS(어느 사이트에서 호출 허용할지)는 이미 `worker/wrangler.toml`에  
 > `https://devrenio.github.io` 로 설정되어 있습니다. **추가 작업 없음.**
@@ -160,7 +160,7 @@ cd c:\GitHub\devRenio.github.io\samuel-memorizer-app
 `.env` 파일에 **아래 한 줄을 추가**합니다. (`<WORKER_URL>`을 B-4에서 복사한 주소로 바꿈)
 
 ```env
-VITE_JBCH_BFF_URL=https://samuel-jbch-bff.abc123def456.workers.dev/api/jbch
+VITE_JBCH_BFF_URL=https://samuel-jbch-bff.devrenio.workers.dev/api/jbch
 VITE_ADMIN_USERIDS=eunho715
 VITE_JBCH_SUPPORT_LABEL=서울양천 공은호 형제
 ```
