@@ -4,6 +4,27 @@ import { APP_NAME_KO } from "../constants/appInfo";
 
 const USERID_MAX = 64;
 
+function getHardRefreshMethod() {
+  const ua = navigator.userAgent ?? "";
+  const platform = navigator.userAgentData?.platform ?? navigator.platform ?? "";
+  const isTouchMac =
+    platform === "MacIntel" && (navigator.maxTouchPoints ?? 0) > 1;
+
+  if (/iP(hone|ad|od)/i.test(ua) || isTouchMac) {
+    return "iPhone·iPad: Safari 탭을 닫고 다시 열어 주세요.";
+  }
+  if (/Android/i.test(ua)) {
+    return "Android: 브라우저 메뉴(⋮)에서 새로고침해 주세요.";
+  }
+  if (/Mac/i.test(platform) || /Mac OS X/i.test(ua)) {
+    return "Mac: ⌘ Cmd + Shift + R";
+  }
+  if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
+    return "Linux: Ctrl + Shift + R";
+  }
+  return "Windows: Ctrl + Shift + R (또는 Ctrl + F5)";
+}
+
 export default function AuthModal({
   jbchEnabled,
   busy,
@@ -100,6 +121,11 @@ export default function AuthModal({
             {busy ? "로그인 중…" : "깨사모 로그인"}
           </button>
         </form>
+
+        <p className="auth-refresh-hint">
+          화면이 이상하거나 로그인이 안 되면 강력 새로고침을 해 보세요.
+          <span className="auth-refresh-hint-keys">{getHardRefreshMethod()}</span>
+        </p>
       </div>
     </div>
   );
